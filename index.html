@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OGsbots - Fortnite Lobby Bots</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: #1c1c1c;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 16px;
+      transition: color 0.3s;
+    }
+    .navbar a:hover {
+      color: #a100ff;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+    }
+    .user-info input, .user-info span {
+      margin: 0 10px;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      background: #2a2a2a;
+      color: #fff;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #a100ff;
+      margin-bottom: 15px;
+    }
+    .page {
+      display: none;
+    }
+    .page.active {
+      display: block;
+      animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    input, select, button {
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      background: #2a2a2a;
+      color: #fff;
+    }
+    select {
+      appearance: none;
+      background: #2a2a2a url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center;
+      padding-right: 30px;
+    }
+    button {
+      background: #a100ff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #7b00cc;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    .card {
+      background: #1c1c1c;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    .bot-details {
+      font-size: 12px;
+      color: #ccc;
+      margin-top: 5px;
+    }
+    .create-bot {
+      background: #2a2a2a;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .create-bot input {
+      flex: 1;
+      min-width: 200px;
+    }
+    .create-bot select {
+      min-width: 200px;
+    }
+    .create-bot button {
+      flex-shrink: 0;
+    }
+    /* Commands Page Table */
+    .commands-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1c1c1c;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    .commands-table th, .commands-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .commands-table th {
+      background: #a100ff;
+      color: #fff;
+      font-weight: bold;
+    }
+    .commands-table tr:last-child td {
+      border-bottom: none;
+    }
+    .commands-table code {
+      background: #2a2a2a;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    @media (max-width: 600px) {
+      .navbar {
+        flex-direction: column;
+        text-align: center;
+      }
+      .navbar a {
+        margin: 5px 0;
+      }
+      .user-info {
+        flex-direction: column;
+      }
+      .create-bot {
+        flex-direction: column;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .commands-table {
+        font-size: 14px;
+      }
+      .commands-table th, .commands-table td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <div class="navbar">
+    <div>
+      <a href="#" onclick="showPage('home')">Home</a>
+      <a href="#" onclick="showPage('public')">Public Bots</a>
+      <a href="#" onclick="showPage('private')">My Bots</a>
+      <a href="#" onclick="showPage('commands')">Commands</a>
+      <a href="#" onclick="showModDashboard()">Moderator</a>
+    </div>
+    <div class="user-info">
+      <input id="username" type="text" placeholder="Username">
+      <span>Points: <span id="points">0</span></span>
+    </div>
+  </div>
+
+  <!-- Pages -->
+  <div class="container">
+    <!-- Home Page -->
+    <div id="home" class="page active">
+      <h1>Welcome to OGsbots</h1>
+      <p>Join the ultimate Fortnite lobby bot experience with OGsbots! Create custom bots for your lobbies or use our 75 public bots. Earn 3 points per minute to create private bots (250 points each, max 2 per user).</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Public Bots</h3>
+          <p>Explore 75 ready-to-use OGsbots for your Fortnite lobbies.</p>
+          <button onclick="showPage('public')">View Bots</button>
+        </div>
+        <div class="card">
+          <h3>My Bots</h3>
+          <p>Create up to 2 custom bots with tailored settings.</p>
+          <button onclick="showPage('private')">Create Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Public Bots Page -->
+    <div id="public" class="page">
+      <h1>Public Bots</h1>
+      <p>Add these OGsbots as friends in Fortnite to join your lobby.</p>
+      <div id="public-bot-list" class="grid"></div>
+    </div>
+
+    <!-- Private Bots Page -->
+    <div id="private" class="page">
+      <h1>My Bots</h1>
+      <p>Create custom OGsbots (250 points each, max 2). Choose a username and behavior preset.</p>
+      <div class="create-bot">
+        <input id="bot-username" type="text" placeholder="Bot Username">
+        <select id="preset">
+          <option value="Preset1">Preset 1: Auto Friend, Auto Invite, Playing</option>
+          <option value="Preset2">Preset 2: Manual Friend, Manual Invite, Offline</option>
+        </select>
+        <button onclick="createBot()">Create Bot (250 Points)</button>
+      </div>
+      <h2>Your Bots</h2>
+      <div id="private-bot-list" class="grid"></div>
+    </div>
+
+    <!-- Commands Page -->
+    <div id="commands" class="page">
+      <h1>OGsbots Commands</h1>
+      <p>Below is a list of available commands for OGsbots in Fortnite lobbies. Use these in the Fortnite chat to control your bots.</p>
+      <table class="commands-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>Description</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>emote</code></td>
+            <td>Sets the bot's emote</td>
+            <td><code>emote &lt;emote_name&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>all-items</code></td>
+            <td>Shows all cosmetics in the game, optional filter, stop with "stop"</td>
+            <td><code>all-items [filter]</code></td>
+          </tr>
+          <tr>
+            <td><code>mimic</code></td>
+            <td>Copies cosmetics or actions of a user, stop with "stop"</td>
+            <td><code>mimic [All | Changes | Outfits | Emotes] [Member name or ID]</code></td>
+          </tr>
+          <tr>
+            <td><code>stop</code></td>
+            <td>Stops ongoing commands like emote or mimic</td>
+            <td><code>stop</code></td>
+          </tr>
+          <tr>
+            <td><code>level</code></td>
+            <td>Sets the bot's battle pass level</td>
+            <td><code>level &lt;number&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>crowns</code></td>
+            <td>Displays or sets the bot's crown wins</td>
+            <td><code>crowns [number]</code></td>
+          </tr>
+          <tr>
+            <td><code>ready</code></td>
+            <td>Sets the bot to ready status for matchmaking</td>
+            <td><code>ready</code></td>
+          </tr>
+          <tr>
+            <td><code>unready</code></td>
+            <td>Sets the bot to unready status</td>
+            <td><code>unready</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Moderator Dashboard -->
+    <div id="mod" class="page">
+      <h1>Moderator Dashboard</h1>
+      <p>Approve pending OGsbots to activate them for users.</p>
+      <h2>Pending Bots</h2>
+      <div id="pending-bots" class="grid"></div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize state from localStorage or set defaults
+    let state = JSON.parse(localStorage.getItem('ogsBotsState')) || {
+      username: '',
+      points: 0,
+      bots: [],
+      pendingBots: []
+    };
+
+    // Initialize public bots if not in state
+    if (!state.bots.some(bot => bot.isPublic)) {
+      for (let i = 1; i <= 75; i++) {
+        state.bots.push({
+          username: `OGsbot${i}`,
+          preset: 'Preset1',
+          isPublic: true,
+          status: 'created'
+        });
+      }
+      saveState();
+    }
+
+    // Save state to localStorage
+    function saveState() {
+      localStorage.setItem('ogsBotsState', JSON.stringify(state));
+    }
+
+    // DOM elements
+    const usernameInput = document.getElementById('username');
+    const pointsDisplay = document.getElementById('points');
+    const botUsernameInput = document.getElementById('bot-username');
+    const presetSelect = document.getElementById('preset');
+    const publicBotList = document.getElementById('public-bot-list');
+    const privateBotList = document.getElementById('private-bot-list');
+    const pendingBotsList = document.getElementById('pending-bots');
+
+    // Load initial state
+    usernameInput.value = state.username;
+    pointsDisplay.textContent = state.points;
+
+    // Update username
+    usernameInput.addEventListener('input', () => {
+      state.username = usernameInput.value.trim();
+      saveState();
+      if (document.getElementById('private').classList.contains('active')) {
+        loadPrivateBots();
+      }
+    });
+
+    // Update points every minute
+    setInterval(() => {
+      if (!state.username) return;
+      state.points += 3;
+      pointsDisplay.textContent = state.points;
+      saveState();
+    }, 60000);
+
+    // Show page
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      if (pageId === 'public') loadPublicBots();
+      if (pageId === 'private') loadPrivateBots();
+      if (pageId === 'commands') {} // Static page, no load needed
+    }
+
+    // Show moderator dashboard with password
+    function showModDashboard() {
+      const password = prompt('Enter moderator password');
+      if (password !== 'mod123') {
+        alert('Incorrect password');
+        return;
+      }
+      showPage('mod');
+      loadPendingBots();
+    }
+
+    // Get preset details
+    function getPresetDetails(preset) {
+      switch (preset) {
+        case 'Preset1':
+          return 'Auto Friend, Auto Invite, Playing Fortnite';
+        case 'Preset2':
+          return 'Manual Friend, Manual Invite, Offline';
+        default:
+          return preset;
+      }
+    }
+
+    // Load public bots
+    function loadPublicBots() {
+      publicBotList.innerHTML = '';
+      state.bots.filter(bot => bot.isPublic).forEach(bot => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <strong>${bot.username}</strong>
+          <div class="bot-details">
+            Settings: ${getPresetDetails(bot.preset)}<br>
+            Status: ${bot.status}
+          </div>
+        `;
+        publicBotList.appendChild(div);
+      });
+    }
+
+    // Load private bots
+    function loadPrivateBots() {
+      if (!state.username) {
+        privateBotList.innerHTML = '<div class="card">Please enter a username</div>';
+        return;
+      }
+      privateBotList.innerHTML = '';
+      const userBots = [
+        ...state.bots.filter(bot => bot.user === state.username && !bot.isPublic),
+        ...state.pendingBots.filter(bot => bot.user === state.username)
+      ];
+      if (!userBots.length) {
+        privateBotList.innerHTML = '<div class="card">No quedaba bots yet</div>';
+        return;
+      }
+      userBots.forEach(bot => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <strong>${bot.username}</strong>
+          <div class="bot-details">
+            Settings: ${getPresetDetails(bot.preset)}<br>
+            Status: ${bot.status === 'pending' ? 'Bot Being Created' : 'Bot Created'}
+          </div>
+        `;
+        privateBotList.appendChild(div);
+      });
+    }
+
+    // Create bot
+    function createBot() {
+      const botUsername = botUsernameInput.value.trim();
+      const preset = presetSelect.value;
+      if (!state.username || !botUsername) {
+        alert('Enter both username and bot username');
+        return;
+      }
+      if (!botUsername.match(/^[a-zA-Z0-9]+$/)) {
+        alert('Bot username must be alphanumeric');
+        return;
+      }
+      if (botUsername.length > 20) {
+        alert('Bot username must be 20 characters or less');
+        return;
+      }
+      if (state.bots.filter(b => b.user === state.username && !b.isPublic).length >= 2) {
+        alert('Max 2 private bots allowed');
+        return;
+      }
+      if (state.bots.some(b => b.username === botUsername) || state.pendingBots.some(b => b.username === botUsername)) {
+        alert('Bot username already taken');
+        return;
+      }
+      if (state.points < 250) {
+        alert('Need 250 points to create a bot');
+        return;
+      }
+      state.points -= 250;
+      pointsDisplay.textContent = state.points;
+      const bot = {
+        username: botUsername,
+        preset,
+        user: state.username,
+        status: 'pending'
+      };
+      state.pendingBots.push(bot);
+      botUsernameInput.value = '';
+      saveState();
+      alert('Bot Being Created');
+      loadPrivateBots();
+    }
+
+    // Load pending bots (moderator)
+    function loadPendingBots() {
+      pendingBotsList.innerHTML = '';
+      if (!state.pendingBots.length) {
+        pendingBotsList.innerHTML = '<div class="card">No pending bots</div>';
+        return;
+      }
+      state.pendingBots.forEach(bot => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <strong>${bot.username}</strong>
+          <div class="bot-details">
+            Settings: ${getPresetDetails(bot.preset)}<br>
+            Status: Pending
+          </div>
+        `;
+        const approveBtn = document.createElement('button');
+        approveBtn.textContent = 'Approve';
+        approveBtn.onclick = () => approveBot(bot.username);
+        div.appendChild(approveBtn);
+        pendingBotsList.appendChild(div);
+      });
+    }
+
+    // Approve bot (moderator)
+    function approveBot(username) {
+      const bot = state.pendingBots.find(b => b.username === username);
+      if (!bot) {
+        alert('Bot not found');
+        return;
+      }
+      bot.status = 'created';
+      state.bots.push(bot);
+      state.pendingBots = state.pendingBots.filter(b => b.username !== username);
+      saveState();
+      alert('Bot Created');
+      loadPendingBots();
+      if (state.username === bot.user) {
+        loadPrivateBots();
+      }
+    }
+
+    // Initial load
+    showPage('home');
+  </script>
+</body>
+</html>
